@@ -56,7 +56,6 @@ class AIInterpreter:
                     "temperature": 0.72,
                     "max_tokens": 1400,
                 },
-                },
                 timeout=60,
             )
             response.raise_for_status()

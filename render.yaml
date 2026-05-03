@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: ai-tarot-divination-system
+    name: star-moon-tarot-oracle
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt

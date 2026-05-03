@@ -3,6 +3,7 @@ import os
 from typing import Any, Dict, List
 
 import requests
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -65,6 +66,7 @@ class AIInterpreter:
             payload = response.json()
             content = self._extract_content(payload)
             if content:
+                content = self._strip_thinking(content)
                 return content
 
             return "解读出错：Minimax 返回内容中没有可展示的解读文本，请检查模型名称或稍后重试。"
@@ -155,9 +157,12 @@ class AIInterpreter:
         return ""
 
     def _strip_thinking(self, text: str) -> str:
-        """Remove <think>... thinking blocks from text."""
+        """Remove thinking blocks from text."""
         import re
-        return re.sub(r"<think>.*?", "", text, flags=re.DOTALL).strip()
+        # Correctly strip <think>...</think> blocks.
+        # The previous implementation was buggy and too aggressive.
+        text = re.sub(r"<thinking>.*?</thinking>", "", text, flags=re.DOTALL)
+        return text.strip()
 
     def _build_prompt(
         self,

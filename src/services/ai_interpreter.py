@@ -60,8 +60,15 @@ class AIInterpreter:
                 timeout=60,
             )
             response.raise_for_status()
+            if not response.text.strip():
+                return "解读出错：Minimax 返回了空响应，请稍后重试。"
+
             payload = response.json()
-            return payload["choices"][0]["message"]["content"]
+            content = self._extract_content(payload)
+            if content:
+                return content
+
+            return "解读出错：Minimax 返回内容中没有可展示的解读文本，请检查模型名称或稍后重试。"
         except Exception as e:
             error_msg = str(e)
             if "timed out" in error_msg.lower() or "timeout" in error_msg.lower():
@@ -71,6 +78,33 @@ class AIInterpreter:
             if "quota" in error_msg.lower():
                 return "错误：API 配额已用尽。"
             return f"解读出错：{error_msg}"
+
+    def _extract_content(self, payload: Dict[str, Any]) -> str:
+        """Extract assistant text from common OpenAI-compatible response shapes."""
+        choices = payload.get("choices") or []
+        if choices:
+            first = choices[0] or {}
+            message = first.get("message") or {}
+            content = message.get("content")
+            if isinstance(content, str) and content.strip():
+                return content.strip()
+            if isinstance(content, list):
+                parts = [
+                    item.get("text", "")
+                    for item in content
+                    if isinstance(item, dict) and item.get("text")
+                ]
+                if parts:
+                    return "\n".join(parts).strip()
+            text = first.get("text")
+            if isinstance(text, str) and text.strip():
+                return text.strip()
+
+        output = payload.get("output")
+        if isinstance(output, str) and output.strip():
+            return output.strip()
+
+        return ""
 
     def _build_prompt(
         self,

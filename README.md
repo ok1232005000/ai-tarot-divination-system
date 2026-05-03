@@ -30,5 +30,5 @@ This repo includes `render.yaml`. Create a Render Web Service from the GitHub re
 If you configure the service manually, use:
 
 ```bash
-gunicorn app:app --bind 0.0.0.0:$PORT
+gunicorn app:app --bind 0.0.0.0:${PORT:-10000}
 ```

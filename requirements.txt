@@ -1,0 +1,8 @@
+# AI 塔罗占卜系统依赖
+flask==2.3.3
+pyyaml==6.0.1
+pytest==7.4.2
+hypothesis==6.87.1
+requests==2.31.0
+python-dotenv==1.0.0
+gunicorn==21.2.0

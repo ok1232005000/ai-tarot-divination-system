@@ -1,0 +1,57 @@
+# AI塔罗占卜系统配置文件
+
+# 应用配置
+app:
+  name: "AI塔罗占卜系统"
+  version: "1.0.0"
+  debug: true
+  host: "localhost"
+  port: 5000
+
+# 数据库配置
+database:
+  type: "sqlite"
+  path: "data/tarot_system.db"
+  echo: false
+
+# AI服务配置
+ai:
+  provider: "openai"  # openai, claude, local
+  api_key: "${OPENAI_API_KEY}"  # 从环境变量读取
+  model: "gpt-3.5-turbo"
+  max_tokens: 1000
+  temperature: 0.7
+  timeout: 30
+
+# 缓存配置
+cache:
+  type: "memory"  # memory, redis
+  ttl: 1800  # 30分钟
+
+# 日志配置
+logging:
+  level: "INFO"
+  file_rotation: true
+  max_file_size: "10MB"
+  backup_count: 5
+
+# 安全配置
+security:
+  max_question_length: 500
+  min_question_length: 5
+  rate_limit:
+    requests_per_minute: 60
+    requests_per_hour: 1000
+  
+# 性能配置
+performance:
+  max_concurrent_readings: 10
+  response_timeout: 5
+  ai_timeout: 30
+
+# 功能开关
+features:
+  enable_ai_fallback: true
+  enable_caching: true
+  enable_rate_limiting: true
+  enable_request_logging: true

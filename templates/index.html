@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星月塔罗 | AI 占卜</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="sky" aria-hidden="true">
+        <div class="stars stars-a"></div>
+        <div class="stars stars-b"></div>
+        <div class="moon"></div>
+        <div class="constellation"></div>
+    </div>
+
+    <main class="app-shell">
+        <section class="hero">
+            <div class="brand-mark">☾</div>
+            <div>
+                <p class="eyebrow">Minimax AI Tarot Reading</p>
+                <h1>星月塔罗</h1>
+                <p class="hero-copy">在紫色星空下抽取你的牌，让 AI 解读牌面之间的隐秘线索。</p>
+            </div>
+        </section>
+
+        <section class="dashboard">
+            <aside class="side-panel">
+                <div class="panel-block daily-card">
+                    <div class="block-title">
+                        <span>今日一牌</span>
+                        <button class="icon-btn" id="refresh-daily" title="刷新今日一牌">↻</button>
+                    </div>
+                    <div id="daily-card" class="mini-card loading-card">星光校准中...</div>
+                </div>
+
+                <div class="panel-block">
+                    <div class="block-title">
+                        <span>占卜记录</span>
+                        <button class="text-btn" id="clear-history">清空</button>
+                    </div>
+                    <div id="history-list" class="history-list empty">还没有记录</div>
+                </div>
+            </aside>
+
+            <section class="reading-panel">
+                <div class="section-head">
+                    <div>
+                        <p class="eyebrow">Step 01</p>
+                        <h2>写下你的问题</h2>
+                    </div>
+                    <span class="counter" id="question-count">0 / 500</span>
+                </div>
+                <textarea id="question" class="question-input" maxlength="500" placeholder="例如：未来三个月我在事业选择上应该注意什么？"></textarea>
+
+                <div class="control-grid">
+                    <label>
+                        <span>问题主题</span>
+                        <select id="topic">
+                            <option value="general">综合</option>
+                            <option value="love">感情</option>
+                            <option value="career">事业</option>
+                            <option value="wealth">财务</option>
+                            <option value="growth">个人成长</option>
+                        </select>
+                    </label>
+                    <label>
+                        <span>解读语气</span>
+                        <select id="tone">
+                            <option value="warm">温柔鼓励</option>
+                            <option value="direct">直接清晰</option>
+                            <option value="deep">深入洞察</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="section-head compact">
+                    <div>
+                        <p class="eyebrow">Step 02</p>
+                        <h2>选择牌阵</h2>
+                    </div>
+                </div>
+                <div class="spread-options" id="spread-options">
+                    <button class="spread-btn active" data-spread="single_card">
+                        <strong>单牌指引</strong>
+                        <span>快速聚焦一个答案</span>
+                    </button>
+                    <button class="spread-btn" data-spread="three_card">
+                        <strong>三牌牌阵</strong>
+                        <span>过去、现在、未来</span>
+                    </button>
+                    <button class="spread-btn" data-spread="celtic_cross">
+                        <strong>凯尔特十字</strong>
+                        <span>复杂问题深度拆解</span>
+                    </button>
+                </div>
+                <div id="spread-detail" class="spread-detail"></div>
+
+                <div class="section-head compact">
+                    <div>
+                        <p class="eyebrow">Step 03</p>
+                        <h2>抽牌方式</h2>
+                    </div>
+                </div>
+                <div class="mode-row">
+                    <button class="mode-btn active" data-mode="auto">星盘自动抽牌</button>
+                    <button class="mode-btn" data-mode="manual">手动盲抽</button>
+                </div>
+
+                <section class="deck-container" id="deck-container"></section>
+
+                <div class="action-row">
+                    <button class="primary-btn" id="draw-btn">开始占卜</button>
+                    <button class="ghost-btn" id="reset-btn">重新净牌</button>
+                </div>
+            </section>
+        </section>
+
+        <section class="result-panel" id="cards-section">
+            <div class="section-head">
+                <div>
+                    <p class="eyebrow">Revealed Cards</p>
+                    <h2>抽出的牌</h2>
+                </div>
+                <button class="ghost-btn small" id="interpret-btn">AI 解读</button>
+            </div>
+            <div class="cards-container" id="cards-container"></div>
+        </section>
+
+        <section class="result-panel" id="interpretation-section">
+            <div class="section-head">
+                <div>
+                    <p class="eyebrow">Oracle Message</p>
+                    <h2>命运启示</h2>
+                </div>
+                <div class="action-pair">
+                    <button class="ghost-btn small" id="copy-result">复制</button>
+                    <button class="ghost-btn small" id="save-result">保存记录</button>
+                </div>
+            </div>
+            <div class="interpretation-content">
+                <pre class="interpretation-text" id="interpretation-text"></pre>
+            </div>
+        </section>
+
+        <footer class="footer">
+            塔罗解读适合作为自我觉察和灵感参考，不替代医学、法律、财务等专业建议。
+        </footer>
+    </main>
+
+    <div class="toast" id="toast"></div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

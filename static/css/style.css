@@ -618,6 +618,16 @@ select {
     font-size: 0.88rem;
 }
 
+.daily-advice {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--violet);
+    font-size: 0.92rem;
+    background: rgba(157, 108, 255, 0.08);
+    border: 1px solid rgba(196, 132, 252, 0.18);
+}
+
 .history-list {
     display: grid;
     gap: 10px;

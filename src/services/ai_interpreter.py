@@ -77,7 +77,51 @@ class AIInterpreter:
                 return "错误：API 密钥无效或已过期。"
             if "quota" in error_msg.lower():
                 return "错误：API 配额已用尽。"
+            if "502" in error_msg or "bad gateway" in error_msg.lower():
+                return "错误：Minimax 服务暂时异常，请稍后重试。"
             return f"解读出错：{error_msg}"
+
+    def generate_daily_advice(self, card: Dict[str, Any]) -> str:
+        """Generate a daily advice for a single card."""
+        orientation = "逆位" if card.get("reversed", False) else "正位"
+        card_name = card.get("name", "")
+        meaning = card.get("reversed_meaning", "") if card.get("reversed") else card.get("upright_meaning", "")
+        keywords = ", ".join(card.get("keywords", [])) if card.get("keywords") else ""
+
+        prompt = f"""今日抽到的牌：{card_name}，{orientation}
+牌义：{meaning}
+关键词：{keywords}
+
+请给出 2-3 句简洁的今日运势建议，使用温暖但克制的语气。不要制造焦虑，重点给出当日可行的行动提示。回复应该控制在 100 字以内。"""
+
+        try:
+            response = self._session.post(
+                f"{self._base_url}/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {self._api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": self._model,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "你是一位简洁高效的中文塔罗解读师，输出简短温暖的每日建议。",
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.6,
+                    "max_tokens": 300,
+                },
+                timeout=30,
+            )
+            response.raise_for_status()
+            if not response.text.strip():
+                return ""
+            payload = response.json()
+            return self._extract_content(payload) or ""
+        except Exception as e:
+            return ""
 
     def _extract_content(self, payload: Dict[str, Any]) -> str:
         """Extract assistant text from common OpenAI-compatible response shapes."""

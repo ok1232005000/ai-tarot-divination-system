@@ -30,7 +30,7 @@ const els = {
     copyResult: document.getElementById("copy-result"),
     saveResult: document.getElementById("save-result"),
     dailyCard: document.getElementById("daily-card"),
-    refreshDaily: document.getElementById("refresh-daily"),
+    dailyAdvice: document.getElementById("daily-advice"),
     historyList: document.getElementById("history-list"),
     clearHistory: document.getElementById("clear-history"),
     toast: document.getElementById("toast"),
@@ -101,7 +101,6 @@ function bindEvents() {
     els.interpretBtn.addEventListener("click", interpretCards);
     els.copyResult.addEventListener("click", copyInterpretation);
     els.saveResult.addEventListener("click", saveCurrentReading);
-    els.refreshDaily.addEventListener("click", loadDailyCard);
     els.clearHistory.addEventListener("click", clearHistory);
 }
 
@@ -119,9 +118,10 @@ async function loadSpreads() {
 async function loadDailyCard() {
     els.dailyCard.className = "mini-card loading-card";
     els.dailyCard.textContent = "星光校准中...";
+    els.dailyAdvice.textContent = "";
     try {
         const data = await requestJson("/api/daily_card");
-        if (!data.success) throw new Error(data.error || "获取今日一牌失败");
+        if (!data.success) throw new Error(data.error || "获取今日运势失败");
         const card = data.card;
         const meaning = card.reversed ? card.reversed_meaning : card.upright_meaning;
         els.dailyCard.className = "mini-card";
@@ -130,6 +130,9 @@ async function loadDailyCard() {
             <span>${card.reversed ? "逆位" : "正位"} · ${escapeHtml(card.date)}</span>
             <p>${escapeHtml(meaning)}</p>
         `;
+        if (data.advice) {
+            els.dailyAdvice.textContent = data.advice;
+        }
     } catch (error) {
         els.dailyCard.className = "mini-card";
         els.dailyCard.textContent = error.message;

@@ -59,7 +59,13 @@ def get_spreads():
 def get_daily_card():
     """Get a deterministic daily card for the current date."""
     try:
-        return jsonify({"success": True, "card": reading_service.get_daily_card()})
+        card = reading_service.get_daily_card()
+        advice = ""
+        try:
+            advice = get_ai_interpreter().generate_daily_advice(card) or ""
+        except Exception:
+            pass
+        return jsonify({"success": True, "card": card, "advice": advice})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

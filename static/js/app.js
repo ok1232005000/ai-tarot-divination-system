@@ -482,8 +482,26 @@ function buildShareText() {
 
 async function requestJson(url, options = {}) {
     const response = await fetch(url, options);
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || `请求失败：${response.status}`);
+    const text = await response.text();
+    let data = {};
+
+    if (text) {
+        try {
+            data = JSON.parse(text);
+        } catch (error) {
+            const shortText = text.replace(/\s+/g, " ").slice(0, 140);
+            throw new Error(`接口返回了非 JSON 内容：${shortText || response.statusText}`);
+        }
+    }
+
+    if (!response.ok) {
+        throw new Error(data.error || `请求失败：${response.status} ${response.statusText}`);
+    }
+
+    if (!text) {
+        throw new Error("接口返回为空，请检查服务是否部署成功");
+    }
+
     return data;
 }
 

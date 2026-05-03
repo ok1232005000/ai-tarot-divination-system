@@ -30,6 +30,12 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/healthz")
+def healthz():
+    """Health check endpoint for deployment platforms."""
+    return jsonify({"success": True, "status": "ok"})
+
+
 @app.route("/api/deck", methods=["GET"])
 def get_deck():
     """Get all 78 tarot cards info (for display in non-blind mode only)."""

@@ -26,3 +26,9 @@ FLASK_DEBUG=false
 ## Render
 
 This repo includes `render.yaml`. Create a Render Web Service from the GitHub repo and set `MINIMAX_API_KEY` in Render environment variables.
+
+If you configure the service manually, use:
+
+```bash
+gunicorn app:app --bind 0.0.0.0:$PORT
+```

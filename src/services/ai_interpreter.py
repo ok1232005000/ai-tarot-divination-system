@@ -55,7 +55,7 @@ class AIInterpreter:
                     ],
                     "temperature": 0.72,
                     "max_tokens": 1400,
-                    "reasoning_split": True,
+                },
                 },
                 timeout=60,
             )
@@ -119,7 +119,12 @@ class AIInterpreter:
             if not response.text.strip():
                 return ""
             payload = response.json()
-            return self._extract_content(payload) or ""
+            content = self._extract_content(payload)
+            if content:
+                # Remove thinking tags if present
+                content = self._strip_thinking(content)
+                return content
+            return ""
         except Exception as e:
             return ""
 
@@ -149,6 +154,11 @@ class AIInterpreter:
             return output.strip()
 
         return ""
+
+    def _strip_thinking(self, text: str) -> str:
+        """Remove <think>... thinking blocks from text."""
+        import re
+        return re.sub(r"<think>.*?", "", text, flags=re.DOTALL).strip()
 
     def _build_prompt(
         self,

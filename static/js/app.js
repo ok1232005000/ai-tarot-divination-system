@@ -131,7 +131,7 @@ async function loadDailyCard() {
             <p>${escapeHtml(meaning)}</p>
         `;
         if (data.advice) {
-            els.dailyAdvice.textContent = data.advice;
+            els.dailyAdvice.textContent = stripThinking(data.advice);
         }
     } catch (error) {
         els.dailyCard.className = "mini-card";
@@ -324,8 +324,8 @@ async function interpretCards() {
             }),
         });
         if (!data.success) throw new Error(data.error || "解读失败");
-        state.interpretation = data.interpretation;
-        els.interpretationText.textContent = data.interpretation;
+        state.interpretation = stripThinking(data.interpretation);
+        els.interpretationText.textContent = state.interpretation;
     } catch (error) {
         els.interpretationText.textContent = error.message;
         showToast(error.message);
@@ -533,4 +533,16 @@ function escapeHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+}
+
+function stripThinking(value) {
+    return String(value ?? "")
+        .replace(/<think\b[^>]*>[\s\S]*?<\/think>/gi, "")
+        .replace(/<thinking\b[^>]*>[\s\S]*?<\/thinking>/gi, "")
+        .replace(/<reasoning\b[^>]*>[\s\S]*?<\/reasoning>/gi, "")
+        .replace(/<think\b[^>]*>[\s\S]*$/gi, "")
+        .replace(/<thinking\b[^>]*>[\s\S]*$/gi, "")
+        .replace(/<reasoning\b[^>]*>[\s\S]*$/gi, "")
+        .replace(/<\/?(think|thinking|reasoning)[^>]*>/gi, "")
+        .trim();
 }

@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import re
+import time
 from typing import Any, Dict, List
 
 import requests
@@ -200,7 +201,7 @@ class AIInterpreter:
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0.72,
-            "max_tokens": 700,
+            "max_tokens": 1200,
             "stream": True,
         }
 
@@ -278,7 +279,12 @@ class AIInterpreter:
 
     def _read_streaming_content(self, response: requests.Response) -> str:
         parts = []
+        finish_reason = None
+        started_at = time.monotonic()
         for line in response.iter_lines(decode_unicode=True):
+            if time.monotonic() - started_at > self._timeout:
+                logging.warning("[AI Interpretation] Stream read exceeded %ss; returning partial content.", self._timeout)
+                break
             if not line:
                 continue
             line = line.strip()
@@ -290,10 +296,34 @@ class AIInterpreter:
                 payload = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            finish_reason = self._extract_finish_reason(payload) or finish_reason
             content = self._extract_raw_stream_content(payload)
             if content:
                 parts.append(content)
-        return self._clean_visible_text("".join(parts))
+        if finish_reason:
+            logging.info("[AI Interpretation] Stream finished with reason: %s", finish_reason)
+        return self._finalize_stream_text("".join(parts))
+
+    def _finalize_stream_text(self, text: str) -> str:
+        text = self._clean_visible_text(text)
+        if not text:
+            return ""
+        if text[-1] in "。！？.!?":
+            return text
+        for mark in ("。", "！", "？", ".", "!", "?"):
+            index = text.rfind(mark)
+            if index >= 80:
+                text = text[: index + 1]
+                break
+        return f"{text}\n\n（AI 响应时间较长，以上为本次已完成的解读。）"
+
+    def _extract_finish_reason(self, payload: Dict[str, Any]) -> str:
+        choices = payload.get("choices") or []
+        if not choices:
+            return ""
+        first = choices[0] or {}
+        reason = first.get("finish_reason")
+        return reason if isinstance(reason, str) else ""
 
     def _extract_raw_stream_content(self, payload: Dict[str, Any]) -> str:
         choices = payload.get("choices") or []
@@ -463,10 +493,10 @@ class AIInterpreter:
 抽到的牌：
 {chr(10).join(cards_info)}
 
-请按以下结构输出：
-1. 开场洞察：用 2-3 句话概括这组牌的核心能量。
-2. 逐张解读：解释每张牌在对应牌位中的含义。
-3. 牌面联结：说明这些牌之间形成的故事、冲突或机会。
+请按以下结构输出，控制在 650-900 字内，短但完整：
+1. 开场洞察：用 2 句话概括核心能量。
+2. 逐张解读：每张牌 2-3 句话，解释它在对应牌位中的含义。
+3. 牌面联结：用 1 段说明这些牌之间形成的故事、冲突或机会。
 4. 行动建议：给出 3 条可以执行的建议。
 5. 提醒：用一句话说明塔罗是自我觉察工具，不替代专业决策。
 

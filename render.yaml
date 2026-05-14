@@ -13,7 +13,7 @@ services:
       - key: MINIMAX_MODEL
         value: MiniMax-M2.7
       - key: AI_REQUEST_TIMEOUT
-        value: 18
+        value: 55
       - key: AI_CONNECT_TIMEOUT
         value: 5
       - key: MINIMAX_API_KEY

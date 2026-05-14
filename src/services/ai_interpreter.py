@@ -11,6 +11,153 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+MAJOR_CARD_NAMES = {
+    "The Fool": "愚者",
+    "The Magician": "魔术师",
+    "The High Priestess": "女祭司",
+    "The Empress": "皇后",
+    "The Emperor": "皇帝",
+    "The Hierophant": "教皇",
+    "The Lovers": "恋人",
+    "The Chariot": "战车",
+    "Strength": "力量",
+    "The Hermit": "隐者",
+    "Wheel of Fortune": "命运之轮",
+    "Justice": "正义",
+    "The Hanged Man": "倒吊人",
+    "Death": "死神",
+    "Temperance": "节制",
+    "The Devil": "恶魔",
+    "The Tower": "高塔",
+    "The Star": "星星",
+    "The Moon": "月亮",
+    "The Sun": "太阳",
+    "Judgement": "审判",
+    "The World": "世界",
+}
+
+RANK_NAMES = {
+    "Ace": "王牌",
+    "Two": "二",
+    "Three": "三",
+    "Four": "四",
+    "Five": "五",
+    "Six": "六",
+    "Seven": "七",
+    "Eight": "八",
+    "Nine": "九",
+    "Ten": "十",
+    "Page": "侍从",
+    "Knight": "骑士",
+    "Queen": "王后",
+    "King": "国王",
+}
+
+SUIT_NAMES = {
+    "Wands": "权杖",
+    "Cups": "圣杯",
+    "Swords": "宝剑",
+    "Pentacles": "星币",
+}
+
+POSITION_NAMES = {
+    "Core": "核心",
+    "Past": "过去",
+    "Present": "现在",
+    "Future": "未来",
+    "Challenge": "挑战",
+    "Root": "根源",
+    "Recent Past": "近期过去",
+    "Potential": "潜在发展",
+    "Near Future": "近期未来",
+    "Self": "自我状态",
+    "Environment": "外部环境",
+    "Hopes/Fears": "期待与担忧",
+    "Outcome": "结果走向",
+}
+
+POSITION_MEANINGS = {
+    "The key answer.": "问题的关键答案。",
+    "Background factors.": "影响当前状态的背景因素。",
+    "Current state.": "你现在正在面对的状态。",
+    "Likely direction.": "事情可能发展的方向。",
+    "Current core issue.": "当前问题的核心。",
+    "Obstacle or tension.": "阻碍、压力或需要面对的张力。",
+    "Underlying cause.": "更深层的原因。",
+    "Recent influences.": "近期已经发生作用的影响。",
+    "Possible near result.": "短期内可能出现的结果。",
+    "What comes soon.": "接下来较快会浮现的变化。",
+    "Your approach.": "你的态度和应对方式。",
+    "External influences.": "外部环境或他人的影响。",
+    "Inner expectations.": "内心的期待、担忧或投射。",
+    "Overall trajectory.": "整体走向。",
+}
+
+SUIT_UPRIGHT_MEANINGS = {
+    "Wands": "行动力、热情与主动推进正在成为重点。",
+    "Cups": "情绪、人际关系与内在感受需要被认真看见。",
+    "Swords": "理性判断、沟通方式和信息取舍会影响结果。",
+    "Pentacles": "现实资源、时间安排、金钱或执行细节需要更稳妥。",
+}
+
+SUIT_REVERSED_MEANINGS = {
+    "Wands": "行动可能被拖延、分散或被一时冲动影响，需要先稳住节奏。",
+    "Cups": "情绪容易积压或误读他人反应，适合先厘清自己的真实感受。",
+    "Swords": "判断可能受到偏见、压力或沟通不清影响，重要决定要多核对事实。",
+    "Pentacles": "现实层面可能有疏漏、资源不足或计划不够落地，需要回到细节。",
+}
+
+MAJOR_UPRIGHT_MEANINGS = {
+    "The Fool": "新的开始、开放心态与尝试的勇气正在出现。",
+    "The Magician": "你拥有把想法落地的工具和主动权。",
+    "The High Priestess": "直觉、观察和未说出口的信息很重要。",
+    "The Empress": "滋养、创造力和稳定成长是当前主题。",
+    "The Emperor": "秩序、边界和清晰安排能带来掌控感。",
+    "The Hierophant": "经验、规则或可靠建议值得参考。",
+    "The Lovers": "选择、关系与价值观一致性是关键。",
+    "The Chariot": "专注目标并控制方向，能推动事情向前。",
+    "Strength": "温和但坚定的耐心，比强硬推进更有效。",
+    "The Hermit": "暂时退一步思考，会看清真正需要的答案。",
+    "Wheel of Fortune": "局势正在变化，顺势调整比固守更重要。",
+    "Justice": "公平、事实和后果意识会影响判断。",
+    "The Hanged Man": "换个角度或暂缓行动，可能带来新理解。",
+    "Death": "旧模式正在结束，留出空间给必要的转变。",
+    "Temperance": "平衡、调和和循序渐进会带来稳定。",
+    "The Devil": "需要看见执念、依赖或不健康的诱惑。",
+    "The Tower": "突发变化会暴露问题，也带来重建机会。",
+    "The Star": "希望、恢复和长期愿景正在支持你。",
+    "The Moon": "不确定与情绪波动较强，先别急着下结论。",
+    "The Sun": "清晰、活力和正向结果更容易显现。",
+    "Judgement": "复盘、觉醒和重新选择的时机正在到来。",
+    "The World": "阶段性完成、整合与更大格局正在形成。",
+}
+
+MAJOR_REVERSED_MEANINGS = {
+    "The Fool": "开始前需要多一点准备，避免鲁莽或忽视风险。",
+    "The Magician": "资源没有被好好整合，先确认目标和方法是否一致。",
+    "The High Priestess": "直觉可能被焦虑干扰，也可能有信息尚未浮现。",
+    "The Empress": "过度消耗或缺乏滋养，提醒你先照顾基本需求。",
+    "The Emperor": "控制感过强或秩序不足，都可能让事情变僵。",
+    "The Hierophant": "别只依赖惯例，确认规则是否真的适合当下。",
+    "The Lovers": "选择容易摇摆，关系或价值观需要重新对齐。",
+    "The Chariot": "方向感不足或用力过猛，先校准目标再推进。",
+    "Strength": "耐心被消耗，容易因急躁而失去柔韧度。",
+    "The Hermit": "独处可能变成逃避，需要在思考后重新连接现实。",
+    "Wheel of Fortune": "变化不完全可控，先接受波动并保留余地。",
+    "Justice": "判断可能失衡，重要事项要回到事实和责任。",
+    "The Hanged Man": "停滞太久会消耗机会，需要看清是否该行动。",
+    "Death": "抗拒结束会拖慢转变，适合放下已经失效的方式。",
+    "Temperance": "节奏失衡，提醒你减少极端做法。",
+    "The Devil": "某种执念、压力或依赖正在限制你的自由。",
+    "The Tower": "问题可能已在累积，越早调整越能减少冲击。",
+    "The Star": "信心不足时，先用小行动恢复方向感。",
+    "The Moon": "误解和不安容易放大，先核实信息再回应。",
+    "The Sun": "好消息可能被延迟，别因短暂不顺否定整体趋势。",
+    "Judgement": "复盘不足会让旧问题重复出现。",
+    "The World": "事情尚未完全收尾，需要补齐最后的环节。",
+}
+
+
 class AIInterpreter:
     def __init__(self):
         api_key = os.getenv("MINIMAX_API_KEY") or os.getenv("OPENAI_API_KEY")
@@ -21,7 +168,7 @@ class AIInterpreter:
         self._base_url = os.getenv("MINIMAX_BASE_URL", "https://api.minimaxi.com/v1").rstrip("/")
         self._model = os.getenv("MINIMAX_MODEL", "MiniMax-M2.7")
         self._fast_model = os.getenv("MINIMAX_FAST_MODEL", self._model)
-        self._timeout = int(os.getenv("AI_REQUEST_TIMEOUT", "18"))
+        self._timeout = int(os.getenv("AI_REQUEST_TIMEOUT", "55"))
         self._connect_timeout = int(os.getenv("AI_CONNECT_TIMEOUT", "5"))
         self._session = requests.Session()
 
@@ -150,6 +297,43 @@ class AIInterpreter:
             return "\n".join(parts)
         return ""
 
+    def _display_card_name(self, name: str) -> str:
+        if name in MAJOR_CARD_NAMES:
+            return MAJOR_CARD_NAMES[name]
+        match = re.match(r"^(Ace|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Page|Knight|Queen|King) of (Wands|Cups|Swords|Pentacles)$", name)
+        if match:
+            rank, suit = match.groups()
+            return f"{SUIT_NAMES[suit]}{RANK_NAMES[rank]}"
+        return name
+
+    def _display_position_name(self, name: str) -> str:
+        return POSITION_NAMES.get(name, name)
+
+    def _display_position_meaning(self, meaning: str) -> str:
+        return POSITION_MEANINGS.get(meaning, meaning)
+
+    def _display_card_meaning(self, card: Dict[str, Any]) -> str:
+        is_reversed = card.get("reversed", False)
+        meaning = card.get("reversed_meaning", "") if is_reversed else card.get("upright_meaning", "")
+        if meaning and not self._is_placeholder_meaning(meaning):
+            return meaning
+
+        name = card.get("name", "")
+        if name in MAJOR_CARD_NAMES:
+            source = MAJOR_REVERSED_MEANINGS if is_reversed else MAJOR_UPRIGHT_MEANINGS
+            return source.get(name, "这张牌提示你关注当下正在变化的核心课题。")
+
+        match = re.match(r"^(Ace|Two|Three|Four|Five|Six|Seven|Eight|Nine|Ten|Page|Knight|Queen|King) of (Wands|Cups|Swords|Pentacles)$", name)
+        if match:
+            _, suit = match.groups()
+            source = SUIT_REVERSED_MEANINGS if is_reversed else SUIT_UPRIGHT_MEANINGS
+            return source[suit]
+
+        return "这张牌提示你回到现实处境，辨认真正需要处理的重点。"
+
+    def _is_placeholder_meaning(self, meaning: str) -> bool:
+        return bool(re.match(r"^(Upright|Reversed) meaning of .+\.$", meaning or ""))
+
     def _clean_visible_text(self, text: str) -> str:
         """Remove model reasoning, SSE fragments, and metadata before showing text."""
         if not text:
@@ -251,7 +435,7 @@ class AIInterpreter:
         tone: str,
     ) -> str:
         lines = [
-            "AI 服务暂时不可用，先根据牌面为你生成一版本地解读。",
+            "AI 服务响应较慢，先根据牌面为你生成一版本地解读。",
             "",
             f"你的问题：{question}",
             "",
@@ -260,18 +444,19 @@ class AIInterpreter:
         for index, card in enumerate(cards):
             position = positions[index] if index < len(positions) else {}
             orientation = "逆位" if card.get("reversed", False) else "正位"
-            meaning = card.get("reversed_meaning", "") if card.get("reversed") else card.get("upright_meaning", "")
-            pos_name = position.get("name", f"位置 {index + 1}")
-            pos_meaning = position.get("meaning", "当前重点")
-            lines.append(f"{index + 1}. {pos_name}（{pos_meaning}）：{card.get('name', '')}{orientation}，提示你关注：{meaning}")
+            card_name = self._display_card_name(card.get("name", ""))
+            pos_name = self._display_position_name(position.get("name", f"位置 {index + 1}"))
+            pos_meaning = self._display_position_meaning(position.get("meaning", "当前重点"))
+            meaning = self._display_card_meaning(card)
+            lines.append(f"{index + 1}. {pos_name}（{pos_meaning}）：{card_name}{orientation}，提示你关注：{meaning}")
 
         lines.extend(
             [
                 "",
                 "行动建议：",
-                "1. 先把问题拆成今天能推进的一小步，避免一次性做过重决定。",
-                "2. 留意牌面关键词对应的现实信号，尤其是反复出现的人、资源或阻力。",
-                "3. 如果问题涉及健康、法律或财务，请把这次解读当作自我梳理，并咨询专业人士。",
+                "1. 明天先避免仓促表态，尤其是需要承诺、付款或定计划的事情，先确认事实再回应。",
+                "2. 如果遇到沟通阻力，优先把话说清楚、把边界写下来，不要靠猜测推进。",
+                "3. 把注意力放在一个能落地的小动作上，例如整理资料、确认时间、补齐细节，而不是一次性解决全部问题。",
             ]
         )
         return "\n".join(lines)

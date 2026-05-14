@@ -21,7 +21,8 @@ class AIInterpreter:
         self._base_url = os.getenv("MINIMAX_BASE_URL", "https://api.minimaxi.com/v1").rstrip("/")
         self._model = os.getenv("MINIMAX_MODEL", "MiniMax-M2.7")
         self._fast_model = os.getenv("MINIMAX_FAST_MODEL", self._model)
-        self._timeout = int(os.getenv("AI_REQUEST_TIMEOUT", "75"))
+        self._timeout = int(os.getenv("AI_REQUEST_TIMEOUT", "18"))
+        self._connect_timeout = int(os.getenv("AI_CONNECT_TIMEOUT", "5"))
         self._session = requests.Session()
 
     def interpret(
@@ -98,6 +99,7 @@ class AIInterpreter:
             return self._build_daily_fallback(card)
 
     def _chat_completion(self, payload: Dict[str, Any], timeout: int) -> str:
+        read_timeout = max(1, timeout - self._connect_timeout)
         response = self._session.post(
             f"{self._base_url}/chat/completions",
             headers={
@@ -105,7 +107,7 @@ class AIInterpreter:
                 "Content-Type": "application/json",
             },
             json=payload,
-            timeout=timeout,
+            timeout=(self._connect_timeout, read_timeout),
         )
         response.raise_for_status()
         if not response.text.strip():

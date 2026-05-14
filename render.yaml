@@ -12,6 +12,10 @@ services:
         value: https://api.minimaxi.com/v1
       - key: MINIMAX_MODEL
         value: MiniMax-M2.7
+      - key: AI_REQUEST_TIMEOUT
+        value: 18
+      - key: AI_CONNECT_TIMEOUT
+        value: 5
       - key: MINIMAX_API_KEY
         sync: false
       - key: SECRET_KEY

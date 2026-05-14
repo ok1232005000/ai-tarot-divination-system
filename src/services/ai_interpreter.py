@@ -166,11 +166,13 @@ class AIInterpreter:
 
         self._api_key = api_key
         self._base_url = os.getenv("MINIMAX_BASE_URL", "https://api.minimaxi.com/v1").rstrip("/")
+
         self._model = os.getenv("MINIMAX_MODEL", "MiniMax-M2.7")
         self._fast_model = os.getenv("MINIMAX_FAST_MODEL", self._model)
         self._timeout = int(os.getenv("AI_REQUEST_TIMEOUT", "55"))
         self._connect_timeout = int(os.getenv("AI_CONNECT_TIMEOUT", "5"))
         self._session = requests.Session()
+        self._session.trust_env = False
 
     def interpret(
         self,
@@ -198,8 +200,8 @@ class AIInterpreter:
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0.72,
-            "max_tokens": 1400,
-            "stream": False,
+            "max_tokens": 700,
+            "stream": True,
         }
 
         try:
@@ -236,7 +238,7 @@ class AIInterpreter:
                     ],
                     "temperature": 0.6,
                     "max_tokens": 300,
-                    "stream": False,
+                    "stream": True,
                 },
                 timeout=min(self._timeout, 45),
             )
@@ -247,7 +249,23 @@ class AIInterpreter:
 
     def _chat_completion(self, payload: Dict[str, Any], timeout: int) -> str:
         read_timeout = max(1, timeout - self._connect_timeout)
-        response = self._session.post(
+        response = self._post_chat(payload, read_timeout)
+        if response.status_code == 429 and str(payload.get("model", "")).endswith("-highspeed"):
+            response.close()
+            retry_payload = dict(payload)
+            retry_payload["model"] = "MiniMax-M2.7"
+            response = self._post_chat(retry_payload, read_timeout)
+        response.raise_for_status()
+        use_stream = bool(payload.get("stream"))
+        if use_stream:
+            return self._read_streaming_content(response)
+        if not response.text.strip():
+            return ""
+        return self._extract_content(response.json())
+
+    def _post_chat(self, payload: Dict[str, Any], read_timeout: int) -> requests.Response:
+        use_stream = bool(payload.get("stream"))
+        return self._session.post(
             f"{self._base_url}/chat/completions",
             headers={
                 "Authorization": f"Bearer {self._api_key}",
@@ -255,11 +273,39 @@ class AIInterpreter:
             },
             json=payload,
             timeout=(self._connect_timeout, read_timeout),
+            stream=use_stream,
         )
-        response.raise_for_status()
-        if not response.text.strip():
+
+    def _read_streaming_content(self, response: requests.Response) -> str:
+        parts = []
+        for line in response.iter_lines(decode_unicode=True):
+            if not line:
+                continue
+            line = line.strip()
+            if line.startswith("data:"):
+                line = line[5:].strip()
+            if not line or line == "[DONE]":
+                continue
+            try:
+                payload = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            content = self._extract_raw_stream_content(payload)
+            if content:
+                parts.append(content)
+        return self._clean_visible_text("".join(parts))
+
+    def _extract_raw_stream_content(self, payload: Dict[str, Any]) -> str:
+        choices = payload.get("choices") or []
+        if not choices:
             return ""
-        return self._extract_content(response.json())
+        first = choices[0] or {}
+        delta = first.get("delta") or {}
+        content = self._content_to_text(delta.get("content"))
+        if content:
+            return content
+        message = first.get("message") or {}
+        return self._content_to_text(message.get("content"))
 
     def _extract_content(self, payload: Dict[str, Any]) -> str:
         """Extract visible assistant text from common OpenAI-compatible response shapes."""

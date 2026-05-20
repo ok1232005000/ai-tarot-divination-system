@@ -159,6 +159,27 @@ def interpret_cards():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@app.route("/api/journal_reflect", methods=["POST"])
+def journal_reflect():
+    """Get an AI companion response for a private tarot journal entry."""
+    try:
+        data = request.get_json() or {}
+        journal_text = data.get("text", "").strip()
+        daily_card = data.get("daily_card") or {}
+        topic = data.get("topic", "自我")
+
+        if len(journal_text) < 4:
+            return jsonify({"success": False, "error": "Journal text too short"}), 400
+
+        response = get_ai_interpreter().generate_journal_response(journal_text, daily_card, topic)
+        return jsonify({"success": True, "response": response})
+
+    except ValueError as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("FLASK_DEBUG", "true").lower() == "true"

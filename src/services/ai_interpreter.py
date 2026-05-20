@@ -248,6 +248,51 @@ class AIInterpreter:
             logging.warning("[Daily Advice] Failed to generate advice: %s", exc)
             return self._build_daily_fallback(card)
 
+    def generate_journal_response(self, journal_text: str, daily_card: Dict[str, Any], topic: str = "self") -> str:
+        """Generate a reflective companion response for a private tarot journal entry."""
+        card_name = daily_card.get("name", "今日牌") if isinstance(daily_card, dict) else "今日牌"
+        orientation = "逆位" if isinstance(daily_card, dict) and daily_card.get("reversed") else "正位"
+        meaning = ""
+        if isinstance(daily_card, dict):
+            meaning = daily_card.get("reversed_meaning", "") if daily_card.get("reversed") else daily_card.get("upright_meaning", "")
+
+        prompt = f"""用户今天写下：
+{journal_text}
+
+今日抽牌：{card_name}（{orientation}）
+牌义参考：{meaning}
+自动分类：{topic}
+
+请用中文输出一段“陪伴式塔罗日记回应”。要求：
+1. 给今天起一个短标题。
+2. 结合今日牌回应用户的情绪，不要说教。
+3. 给一个反思问题。
+4. 给一个很小、今天就能做的照顾自己的动作。
+5. 语气是反思、陪伴、启发，不要包装成心理咨询或绝对预言。
+控制在 180-260 字。只输出最终回应，不要输出思考过程。"""
+
+        try:
+            content = self._chat_completion(
+                {
+                    "model": self._fast_model,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "你是一个克制、温柔的中文塔罗日记陪伴助手，只做反思和启发，不替代心理咨询。",
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.72,
+                    "max_tokens": 500,
+                    "stream": True,
+                },
+                timeout=min(self._timeout, 45),
+            )
+            return content or self._build_journal_fallback(journal_text, card_name, topic)
+        except Exception as exc:
+            logging.warning("[Journal Response] Failed to generate response: %s", exc)
+            return self._build_journal_fallback(journal_text, card_name, topic)
+
     def _chat_completion(self, payload: Dict[str, Any], timeout: int) -> str:
         read_timeout = max(1, timeout - self._connect_timeout)
         response = self._post_chat(payload, read_timeout)
@@ -536,6 +581,24 @@ class AIInterpreter:
             ]
         )
         return "\n".join(lines)
+
+    def _build_journal_fallback(self, journal_text: str, card_name: str, topic: str) -> str:
+        title = journal_text.strip().replace("\n", " ")[:14] or "今天的片刻"
+        if len(journal_text.strip()) > 14:
+            title += "..."
+        topic_hint = {
+            "感情": "关系里的真实感受",
+            "学业/事业": "任务之外的身体负荷",
+            "家庭": "亲近关系中的边界",
+            "自我": "你对自己的要求",
+        }.get(topic, "你当下最需要被看见的部分")
+        return (
+            f"标题：{title}\n\n"
+            f"结合 {card_name}，这段日记更像是在提醒你看见：{topic_hint}。"
+            "你不需要立刻把所有情绪整理成答案，先承认此刻的疲惫和混乱，本身就是一种诚实。\n\n"
+            "反思问题：今天最消耗你的，是事情本身，还是你一直在心里反复推演它？\n\n"
+            "小行动：给自己十分钟，不解决问题，只把下一步能做的一件小事写下来。"
+        )
 
     def _build_daily_fallback(self, card: Dict[str, Any]) -> str:
         orientation = "逆位" if card.get("reversed", False) else "正位"

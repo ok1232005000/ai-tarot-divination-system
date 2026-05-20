@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>星月塔罗 | AI 占卜</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>星月塔罗 | AI 情绪宇宙占卜站</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='20260520c') }}">
 </head>
 <body>
     <div class="sky" aria-hidden="true">
@@ -14,141 +14,282 @@
         <div class="constellation"></div>
     </div>
 
+    <header class="topbar">
+        <button class="topbar-brand tab-btn active" data-tab="reading" type="button">
+            <span class="brand-orb">☽</span>
+            <span>星月塔罗</span>
+        </button>
+        <nav class="topbar-nav" aria-label="功能导航">
+            <button class="tab-btn active" data-tab="reading" type="button">占卜仪式</button>
+            <button class="tab-btn" data-tab="profile" type="button">个人主页</button>
+            <button class="tab-btn" data-tab="relationship" type="button">关系占卜</button>
+            <button class="tab-btn" data-tab="learning" type="button">学习日记</button>
+        </nav>
+        <div class="nav-particles" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+    </header>
+
     <main class="app-shell">
         <section class="hero">
-            <div class="brand-mark">☾</div>
+            <div class="brand-mark">☽</div>
             <div>
-                <p class="eyebrow">Minimax AI Tarot Reading</p>
+                <p class="eyebrow">AI Tarot Journal</p>
                 <h1>星月塔罗</h1>
-                <p class="hero-copy">在紫色星空下抽取你的牌，让 AI 解读牌面之间的隐秘线索。</p>
+                <p class="hero-copy">年轻人的情绪宇宙占卜站：用塔罗提问，用 AI 帮你理解自己。</p>
             </div>
         </section>
 
-        <section class="support-panel">
-            <div class="panel-block daily-card">
-                <div class="block-title">
-                    <span>今日运势</span>
+        <section class="tab-panel active" id="tab-reading">
+            <section class="support-panel reading-support">
+                <div class="panel-block daily-card">
+                    <div class="block-title">
+                        <span>今日能量卡</span>
+                    </div>
+                    <div id="daily-card" class="mini-card loading-card">星光校准中...</div>
+                    <div id="daily-advice" class="daily-advice"></div>
                 </div>
-                <div id="daily-card" class="mini-card loading-card">星光校准中...</div>
-                <div id="daily-advice" class="daily-advice"></div>
-            </div>
 
-            <div class="panel-block">
-                <div class="block-title">
-                    <span>占卜记录</span>
-                    <button class="text-btn" id="clear-history">清空</button>
+                <div class="panel-block oracle-panel">
+                    <div class="block-title">
+                        <span>今日关键词</span>
+                    </div>
+                    <div id="daily-oracle" class="daily-oracle-grid">
+                        <div class="oracle-tile">关键词</div>
+                        <div class="oracle-tile">宜</div>
+                        <div class="oracle-tile">忌</div>
+                        <div class="oracle-tile">幸运</div>
+                    </div>
                 </div>
-                <div id="history-list" class="history-list empty">还没有记录</div>
-            </div>
-        </section>
+            </section>
 
-        <section class="dashboard">
-            <section class="reading-panel">
+            <section class="dashboard">
+                <section class="reading-panel">
+                    <div class="section-head">
+                        <div>
+                            <p class="eyebrow">Step 01</p>
+                            <h2>写下你的问题</h2>
+                        </div>
+                        <span class="counter" id="question-count">0 / 500</span>
+                    </div>
+                    <textarea id="question" class="question-input" maxlength="500" placeholder="例如：未来三个月，我在事业选择上应该注意什么？"></textarea>
+
+                    <div class="ritual-box">
+                        <div>
+                            <strong id="ritual-guide">深呼吸，把问题在心里默念三遍。</strong>
+                            <span>长按按钮完成注入，手动抽牌会进入放大的滑动轮盘。</span>
+                        </div>
+                        <button class="ghost-btn" id="intent-btn" type="button">长按注入问题</button>
+                    </div>
+
+                    <div class="control-grid">
+                        <label>
+                            <span>问题主题</span>
+                            <select id="topic">
+                                <option value="general">综合</option>
+                                <option value="love">感情</option>
+                                <option value="career">事业/学业</option>
+                                <option value="wealth">财务</option>
+                                <option value="growth">个人成长</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>解读语气</span>
+                            <select id="tone">
+                                <option value="warm">温柔鼓励</option>
+                                <option value="direct">直接清晰</option>
+                                <option value="deep">深入洞察</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="section-head compact">
+                        <div>
+                            <p class="eyebrow">Step 02</p>
+                            <h2>选择牌阵</h2>
+                        </div>
+                    </div>
+                    <div class="spread-options" id="spread-options">
+                        <button class="spread-btn active" data-spread="single_card" type="button">
+                            <strong>单牌指引</strong>
+                            <span>快速聚焦一个答案</span>
+                        </button>
+                        <button class="spread-btn" data-spread="three_card" type="button">
+                            <strong>三牌牌阵</strong>
+                            <span>过去、现在、未来</span>
+                        </button>
+                        <button class="spread-btn" data-spread="celtic_cross" type="button">
+                            <strong>凯尔特十字</strong>
+                            <span>复杂问题深度拆解</span>
+                        </button>
+                    </div>
+                    <div id="spread-detail" class="spread-detail"></div>
+
+                    <div class="section-head compact">
+                        <div>
+                            <p class="eyebrow">Step 03</p>
+                            <h2>抽牌方式</h2>
+                        </div>
+                    </div>
+                    <div class="mode-row">
+                        <button class="mode-btn active" data-mode="auto" type="button">星盘自动抽牌</button>
+                        <button class="mode-btn" data-mode="manual" type="button">手动轮盘选牌</button>
+                    </div>
+
+                    <section class="deck-container" id="deck-container"></section>
+
+                    <div class="action-row">
+                        <button class="primary-btn" id="draw-btn" type="button">开始占卜</button>
+                        <button class="ghost-btn" id="reset-btn" type="button">重新净牌</button>
+                    </div>
+                </section>
+            </section>
+
+            <section class="result-panel" id="cards-section">
                 <div class="section-head">
                     <div>
-                        <p class="eyebrow">Step 01</p>
-                        <h2>写下你的问题</h2>
+                        <p class="eyebrow">Revealed Cards</p>
+                        <h2>抽出的牌</h2>
                     </div>
-                    <span class="counter" id="question-count">0 / 500</span>
+                    <div class="action-pair">
+                        <button class="ghost-btn small" id="save-cards" type="button">保存记录</button>
+                        <button class="ghost-btn small" id="interpret-btn" type="button">AI 解读</button>
+                    </div>
                 </div>
-                <textarea id="question" class="question-input" maxlength="500" placeholder="例如：未来三个月我在事业选择上应该注意什么？"></textarea>
+                <div class="cards-container" id="cards-container"></div>
+            </section>
 
-                <div class="control-grid">
-                    <label>
-                        <span>问题主题</span>
-                        <select id="topic">
-                            <option value="general">综合</option>
-                            <option value="love">感情</option>
-                            <option value="career">事业</option>
-                            <option value="wealth">财务</option>
-                            <option value="growth">个人成长</option>
-                        </select>
-                    </label>
-                    <label>
-                        <span>解读语气</span>
-                        <select id="tone">
-                            <option value="warm">温柔鼓励</option>
-                            <option value="direct">直接清晰</option>
-                            <option value="deep">深入洞察</option>
-                        </select>
-                    </label>
-                </div>
-
-                <div class="section-head compact">
+            <section class="result-panel" id="interpretation-section">
+                <div class="section-head">
                     <div>
-                        <p class="eyebrow">Step 02</p>
-                        <h2>选择牌阵</h2>
+                        <p class="eyebrow">Oracle Message</p>
+                        <h2>命运启示</h2>
+                    </div>
+                    <div class="action-pair">
+                        <button class="ghost-btn small" id="copy-result" type="button">复制</button>
+                        <button class="ghost-btn small" id="save-result" type="button">保存记录</button>
                     </div>
                 </div>
-                <div class="spread-options" id="spread-options">
-                    <button class="spread-btn active" data-spread="single_card">
-                        <strong>单牌指引</strong>
-                        <span>快速聚焦一个答案</span>
-                    </button>
-                    <button class="spread-btn" data-spread="three_card">
-                        <strong>三牌牌阵</strong>
-                        <span>过去、现在、未来</span>
-                    </button>
-                    <button class="spread-btn" data-spread="celtic_cross">
-                        <strong>凯尔特十字</strong>
-                        <span>复杂问题深度拆解</span>
-                    </button>
-                </div>
-                <div id="spread-detail" class="spread-detail"></div>
-
-                <div class="section-head compact">
-                    <div>
-                        <p class="eyebrow">Step 03</p>
-                        <h2>抽牌方式</h2>
-                    </div>
-                </div>
-                <div class="mode-row">
-                    <button class="mode-btn active" data-mode="auto">星盘自动抽牌</button>
-                    <button class="mode-btn" data-mode="manual">手动盲抽</button>
-                </div>
-
-                <section class="deck-container" id="deck-container"></section>
-
-                <div class="action-row">
-                    <button class="primary-btn" id="draw-btn">开始占卜</button>
-                    <button class="ghost-btn" id="reset-btn">重新净牌</button>
+                <div class="interpretation-content">
+                    <pre class="interpretation-text" id="interpretation-text"></pre>
                 </div>
             </section>
         </section>
 
-        <section class="result-panel" id="cards-section">
-            <div class="section-head">
-                <div>
-                    <p class="eyebrow">Revealed Cards</p>
-                    <h2>抽出的牌</h2>
+        <section class="tab-panel" id="tab-profile">
+            <section class="profile-grid">
+                <div class="profile-card">
+                    <p class="eyebrow">Personal Archive</p>
+                    <h2>个人塔罗成长档案</h2>
+                    <div class="metric-row">
+                        <div><strong id="metric-total">0</strong><span>保存记录</span></div>
+                        <div><strong id="metric-review">0</strong><span>待回访</span></div>
+                        <div><strong id="metric-fit">--</strong><span>平均契合度</span></div>
+                    </div>
                 </div>
-                <button class="ghost-btn small" id="interpret-btn">AI 解读</button>
-            </div>
-            <div class="cards-container" id="cards-container"></div>
+                <div class="profile-card">
+                    <div class="block-title">
+                        <span>三个月高频牌</span>
+                    </div>
+                    <div id="top-cards" class="tag-cloud empty">保存占卜后会生成趋势</div>
+                </div>
+                <div class="profile-card wide">
+                    <div class="block-title">
+                        <span>占卜记录</span>
+                        <button class="text-btn" id="clear-history" type="button">清空</button>
+                    </div>
+                    <div id="history-list" class="history-list empty">还没有记录</div>
+                </div>
+                <div class="profile-card wide">
+                    <div class="block-title">
+                        <span>结果回访</span>
+                    </div>
+                    <div id="review-list" class="review-list empty">还没有需要回访的占卜</div>
+                </div>
+                <div class="profile-card wide">
+                    <div class="section-head">
+                        <div>
+                            <p class="eyebrow">Monthly / Yearly Report</p>
+                            <h2>月度塔罗报告</h2>
+                        </div>
+                        <button class="ghost-btn small" id="generate-report" type="button">生成报告</button>
+                    </div>
+                    <div id="monthly-report" class="report-card">保存几次占卜后，这里会整理本月能量主题、关键词与一封给你的信。</div>
+                </div>
+            </section>
         </section>
 
-        <section class="result-panel" id="interpretation-section">
-            <div class="section-head">
-                <div>
-                    <p class="eyebrow">Oracle Message</p>
-                    <h2>命运启示</h2>
+        <section class="tab-panel" id="tab-relationship">
+            <section class="reading-panel">
+                <div class="section-head">
+                    <div>
+                        <p class="eyebrow">Relationship Spread</p>
+                        <h2>关系双人占卜</h2>
+                    </div>
                 </div>
-                <div class="action-pair">
-                    <button class="ghost-btn small" id="copy-result">复制</button>
-                    <button class="ghost-btn small" id="save-result">保存记录</button>
+                <div class="control-grid">
+                    <label>
+                        <span>A 的昵称</span>
+                        <input id="person-a" class="text-input" maxlength="24" placeholder="我">
+                    </label>
+                    <label>
+                        <span>B 的昵称</span>
+                        <input id="person-b" class="text-input" maxlength="24" placeholder="TA / 目标 / 梦想">
+                    </label>
                 </div>
-            </div>
-            <div class="interpretation-content">
-                <pre class="interpretation-text" id="interpretation-text"></pre>
-            </div>
+                <label class="single-field">
+                    <span>关系类型</span>
+                    <select id="relation-type">
+                        <option value="暧昧关系">暧昧关系</option>
+                        <option value="恋人关系">恋人关系</option>
+                        <option value="朋友关系">朋友关系</option>
+                        <option value="室友关系">室友关系</option>
+                        <option value="我与目标的关系">我与目标/梦想的关系</option>
+                    </select>
+                </label>
+                <div class="action-row">
+                    <button class="primary-btn" id="relationship-btn" type="button">生成关系能量图</button>
+                    <button class="ghost-btn" id="relationship-ai-btn" type="button">AI 解读关系</button>
+                </div>
+                <div id="relationship-result" class="relationship-result"></div>
+                <div id="relationship-ai-result" class="relationship-result"></div>
+            </section>
+        </section>
+
+        <section class="tab-panel" id="tab-learning">
+            <section class="learning-grid">
+                <div class="profile-card">
+                    <p class="eyebrow">Tarot Learning</p>
+                    <h2>每日认识一张牌</h2>
+                    <div id="learn-card" class="learn-card"></div>
+                    <button class="ghost-btn" id="next-learn-card" type="button">换一张</button>
+                </div>
+                <div class="profile-card">
+                    <p class="eyebrow">Companion Journal</p>
+                    <h2>AI 陪伴式塔罗日记</h2>
+                    <textarea id="journal-input" class="question-input small" maxlength="240" placeholder="今天明明没发生什么，但我很累。"></textarea>
+                    <div class="action-row">
+                        <button class="primary-btn" id="journal-btn" type="button">生成今日回应</button>
+                        <button class="ghost-btn" id="save-journal" type="button">保存日记</button>
+                    </div>
+                    <div id="journal-response" class="journal-response"></div>
+                </div>
+                <div class="profile-card wide">
+                    <div class="block-title">
+                        <span>我的陪伴日记</span>
+                        <button class="text-btn" id="clear-journals" type="button">清空</button>
+                    </div>
+                    <div id="journal-list" class="journal-list empty">还没有保存日记</div>
+                </div>
+            </section>
         </section>
 
         <footer class="footer">
-            塔罗解读适合作为自我觉察和灵感参考，不替代医学、法律、财务等专业建议。
+            塔罗解读适合作为自我觉察、反思和灵感参考，不替代医学、法律、财务或心理咨询等专业建议。
         </footer>
     </main>
 
     <div class="toast" id="toast"></div>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js', v='20260520c') }}"></script>
 </body>
 </html>

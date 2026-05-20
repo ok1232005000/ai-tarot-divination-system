@@ -293,6 +293,59 @@ class AIInterpreter:
             logging.warning("[Journal Response] Failed to generate response: %s", exc)
             return self._build_journal_fallback(journal_text, card_name, topic)
 
+    def generate_monthly_report(self, records: List[Dict[str, Any]], month_label: str = "本月") -> str:
+        """Generate an AI monthly tarot report from saved readings."""
+        if not records:
+            return ""
+
+        compact_records = []
+        for record in records[:12]:
+            cards = []
+            for card in record.get("cards", [])[:10]:
+                orientation = "逆位" if card.get("reversed") else "正位"
+                cards.append(f"{card.get('name', '')}({orientation})")
+            compact_records.append(
+                {
+                    "date": record.get("createdAt", ""),
+                    "question": record.get("question", ""),
+                    "topic": record.get("topic", "general"),
+                    "spread": record.get("spread", ""),
+                    "cards": cards,
+                }
+            )
+
+        prompt = f"""{month_label}的塔罗记录如下：
+{json.dumps(compact_records, ensure_ascii=False)}
+
+请基于这些真实记录，写一份中文月度塔罗报告。要求：
+1. 不要套模板，要具体引用重复出现的牌、主题或问题倾向。
+2. 包含：本月能量主题、感情/关系关键词、学业/事业提醒、重复出现最多的牌、最常出现的大阿卡那、给本月的你的一封短信。
+3. 语气适合年轻用户分享和复盘，但不要绝对预言。
+4. 控制在 450-700 字。
+只输出最终报告，不要输出思考过程。"""
+
+        try:
+            content = self._chat_completion(
+                {
+                    "model": self._model,
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "你是一位克制、细腻的中文塔罗复盘报告撰写者，擅长把历史记录总结成具体、温柔、可执行的月度洞察。",
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0.74,
+                    "max_tokens": 1000,
+                    "stream": True,
+                },
+                timeout=self._timeout,
+            )
+            return content or self._build_monthly_report_fallback(records, month_label)
+        except Exception as exc:
+            logging.warning("[Monthly Report] Failed to generate report: %s", exc)
+            return self._build_monthly_report_fallback(records, month_label)
+
     def _chat_completion(self, payload: Dict[str, Any], timeout: int) -> str:
         read_timeout = max(1, timeout - self._connect_timeout)
         response = self._post_chat(payload, read_timeout)
@@ -599,6 +652,43 @@ class AIInterpreter:
             "反思问题：今天最消耗你的，是事情本身，还是你一直在心里反复推演它？\n\n"
             "小行动：给自己十分钟，不解决问题，只把下一步能做的一件小事写下来。"
         )
+
+    def _build_monthly_report_fallback(self, records: List[Dict[str, Any]], month_label: str) -> str:
+        cards = []
+        topics = []
+        for record in records:
+            topics.append(record.get("topic", "general"))
+            cards.extend(record.get("cards", []))
+        card_names = [card.get("name", "") for card in cards if card.get("name")]
+        major_names = [card.get("name", "") for card in cards if card.get("arcana") == "major"]
+        top_card = self._most_common(card_names) or "尚未形成明显重复牌"
+        top_major = self._most_common(major_names) or "本月大阿卡那较分散"
+        top_topic = self._most_common(topics) or "general"
+        topic_labels = {
+            "general": "方向与选择",
+            "love": "关系、等待与沟通",
+            "career": "计划、行动与阶段推进",
+            "wealth": "资源、稳定与取舍",
+            "growth": "自我觉察与边界",
+        }
+        theme = topic_labels.get(top_topic, "自我整理")
+        return (
+            f"{month_label}能量主题：{theme}\n\n"
+            f"重复出现最多的牌：{top_card}。最常出现的大阿卡那：{top_major}。\n\n"
+            "感情/关系关键词：真实表达、减少脑补、确认边界。若这个月你反复询问关系或情绪问题，牌面更像是在提醒你：不要只在心里推演，也要给现实沟通留出位置。\n\n"
+            "学业/事业提醒：把注意力放回可执行的下一步。计划可以小，但要能落地；选择可以慢，但不要一直停在想象里。\n\n"
+            "给本月的你：这个月的记录说明，你正在尝试更认真地理解自己。塔罗不是替你决定未来，而是帮你看见哪些情绪、关系和行动模式正在反复出现。下一步，不需要一下子改变全部，只要选一个最常出现的主题，好好回应它。"
+        )
+
+    def _most_common(self, values: List[str]) -> str:
+        counts = {}
+        for value in values:
+            if not value:
+                continue
+            counts[value] = counts.get(value, 0) + 1
+        if not counts:
+            return ""
+        return max(counts.items(), key=lambda item: item[1])[0]
 
     def _build_daily_fallback(self, card: Dict[str, Any]) -> str:
         orientation = "逆位" if card.get("reversed", False) else "正位"

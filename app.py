@@ -180,6 +180,26 @@ def journal_reflect():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@app.route("/api/monthly_report", methods=["POST"])
+def monthly_report():
+    """Get an AI monthly tarot report from saved reading records."""
+    try:
+        data = request.get_json() or {}
+        records = data.get("records", [])
+        month_label = data.get("month_label", "本月")
+
+        if not isinstance(records, list) or not records:
+            return jsonify({"success": False, "error": "records required"}), 400
+
+        report = get_ai_interpreter().generate_monthly_report(records, month_label)
+        return jsonify({"success": True, "report": report})
+
+    except ValueError as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     debug = os.getenv("FLASK_DEBUG", "true").lower() == "true"

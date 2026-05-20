@@ -769,7 +769,7 @@ function saveReview(recordId, rating, note) {
     showToast(`已记录契合度 ${rating}/5`);
 }
 
-function renderMonthlyReport() {
+async function renderMonthlyReport() {
     const history = getHistory();
     const now = new Date();
     const month = now.getMonth();
@@ -782,6 +782,26 @@ function renderMonthlyReport() {
     if (!source.length) {
         els.monthlyReport.textContent = "本月还没有足够记录。完成并保存几次占卜后再来生成报告。";
         return;
+    }
+
+    setButtonLoading(els.generateReport, "生成中...");
+    els.monthlyReport.innerHTML = "<p>AI 正在整理你的本月塔罗记录...</p>";
+    try {
+        const data = await withTimeout(requestJson("/api/monthly_report", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                records: source,
+                month_label: `${year} 年 ${month + 1} 月`,
+            }),
+        }), AI_FRONTEND_TIMEOUT);
+        if (!data.success) throw new Error(data.error || "月报生成失败");
+        els.monthlyReport.innerHTML = `<pre class="interpretation-text">${escapeHtml(stripThinking(data.report))}</pre>`;
+        return;
+    } catch (error) {
+        showToast("AI 月报暂不可用，已生成本地复盘版");
+    } finally {
+        setButtonReady(els.generateReport, "生成报告");
     }
 
     const cards = source.flatMap((record) => record.cards || []);

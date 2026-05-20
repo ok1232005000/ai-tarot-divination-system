@@ -1,6 +1,7 @@
 const STORAGE_KEY = "tarotHistory";
 const REVIEW_KEY = "tarotReviews";
 const JOURNAL_KEY = "tarotCompanionJournals";
+const AI_FRONTEND_TIMEOUT = 70000;
 
 const state = {
     spread: "single_card",
@@ -859,7 +860,7 @@ async function renderRelationshipAiReading() {
                 topic: "love",
                 tone: state.tone,
             }),
-        }), 15000);
+        }), AI_FRONTEND_TIMEOUT);
         if (!data.success) throw new Error(data.error || "关系解读失败");
         els.relationshipAiResult.innerHTML = `<pre class="interpretation-text">${escapeHtml(stripThinking(data.interpretation))}</pre>`;
     } catch (error) {
@@ -961,7 +962,7 @@ async function renderJournalResponse() {
                 daily_card: card || {},
                 topic,
             }),
-        }), 15000);
+        }), AI_FRONTEND_TIMEOUT);
         if (!data.success) throw new Error(data.error || "日记回应失败");
         responseText = stripThinking(data.response);
     } catch (error) {

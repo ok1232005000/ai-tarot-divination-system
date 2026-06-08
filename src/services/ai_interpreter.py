@@ -161,15 +161,23 @@ MAJOR_REVERSED_MEANINGS = {
 
 class AIInterpreter:
     def __init__(self):
-        api_key = os.getenv("MINIMAX_API_KEY") or os.getenv("OPENAI_API_KEY")
+        api_key = os.getenv("DEEPSEEK_API_KEY") or os.getenv("MINIMAX_API_KEY") or os.getenv("OPENAI_API_KEY")
         if not api_key:
-            raise ValueError("MINIMAX_API_KEY or OPENAI_API_KEY not found in environment variables")
+            raise ValueError("DEEPSEEK_API_KEY, MINIMAX_API_KEY, or OPENAI_API_KEY not found in environment variables")
 
         self._api_key = api_key
-        self._base_url = os.getenv("MINIMAX_BASE_URL", "https://api.minimaxi.com/v1").rstrip("/")
-
-        self._model = os.getenv("MINIMAX_MODEL", "MiniMax-M2.7")
-        self._fast_model = os.getenv("MINIMAX_FAST_MODEL", self._model)
+        if os.getenv("DEEPSEEK_API_KEY"):
+            default_base_url = "https://api.deepseek.com/v1"
+            default_model = "deepseek-v4-flash"
+            self._base_url = (os.getenv("DEEPSEEK_BASE_URL") or os.getenv("OPENAI_BASE_URL") or default_base_url).rstrip("/")
+            self._model = os.getenv("DEEPSEEK_MODEL") or os.getenv("OPENAI_MODEL") or default_model
+            self._fast_model = os.getenv("DEEPSEEK_FAST_MODEL") or self._model
+        else:
+            default_base_url = "https://api.minimaxi.com/v1"
+            default_model = "MiniMax-M2.7"
+            self._base_url = (os.getenv("MINIMAX_BASE_URL") or os.getenv("OPENAI_BASE_URL") or default_base_url).rstrip("/")
+            self._model = os.getenv("MINIMAX_MODEL") or os.getenv("OPENAI_MODEL") or default_model
+            self._fast_model = os.getenv("MINIMAX_FAST_MODEL") or self._model
         self._timeout = int(os.getenv("AI_REQUEST_TIMEOUT", "55"))
         self._connect_timeout = int(os.getenv("AI_CONNECT_TIMEOUT", "5"))
         self._session = requests.Session()

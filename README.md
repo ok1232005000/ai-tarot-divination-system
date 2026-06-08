@@ -16,16 +16,16 @@ Open `http://127.0.0.1:5000`.
 Copy `.env.example` to `.env` and set:
 
 ```env
-MINIMAX_API_KEY=your_minimax_api_key_here
-MINIMAX_BASE_URL=https://api.minimaxi.com/v1
-MINIMAX_MODEL=MiniMax-M2.7
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
+DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
+DEEPSEEK_MODEL=deepseek-v4-flash
 SECRET_KEY=change-me
 FLASK_DEBUG=false
 ```
 
 ## Render
 
-This repo includes `render.yaml`. Create a Render Web Service from the GitHub repo and set `MINIMAX_API_KEY` in Render environment variables.
+This repo includes `render.yaml`. Create a Render Web Service from the GitHub repo and set `DEEPSEEK_API_KEY` in Render environment variables.
 
 If you configure the service manually, use:
 

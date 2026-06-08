@@ -17,8 +17,9 @@ Copy `.env.example` to `.env` and set:
 
 ```env
 DEEPSEEK_API_KEY=your_deepseek_api_key_here
-DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
+DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-v4-flash
+DEEPSEEK_THINKING=disabled
 SECRET_KEY=change-me
 FLASK_DEBUG=false
 ```

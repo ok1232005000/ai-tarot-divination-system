@@ -167,21 +167,26 @@ class AIInterpreter:
 
         self._api_key = api_key
         if os.getenv("DEEPSEEK_API_KEY"):
-            default_base_url = "https://api.deepseek.com/v1"
+            self._provider = "deepseek"
+            default_base_url = "https://api.deepseek.com"
             default_model = "deepseek-v4-flash"
             self._base_url = (os.getenv("DEEPSEEK_BASE_URL") or os.getenv("OPENAI_BASE_URL") or default_base_url).rstrip("/")
             self._model = os.getenv("DEEPSEEK_MODEL") or os.getenv("OPENAI_MODEL") or default_model
             self._fast_model = os.getenv("DEEPSEEK_FAST_MODEL") or self._model
+            self._deepseek_thinking = os.getenv("DEEPSEEK_THINKING", "disabled").lower()
         else:
+            self._provider = "openai-compatible"
             default_base_url = "https://api.minimaxi.com/v1"
             default_model = "MiniMax-M2.7"
             self._base_url = (os.getenv("MINIMAX_BASE_URL") or os.getenv("OPENAI_BASE_URL") or default_base_url).rstrip("/")
             self._model = os.getenv("MINIMAX_MODEL") or os.getenv("OPENAI_MODEL") or default_model
             self._fast_model = os.getenv("MINIMAX_FAST_MODEL") or self._model
-        self._timeout = int(os.getenv("AI_REQUEST_TIMEOUT", "55"))
+            self._deepseek_thinking = ""
+        self._timeout = int(os.getenv("AI_REQUEST_TIMEOUT", "120"))
         self._connect_timeout = int(os.getenv("AI_CONNECT_TIMEOUT", "5"))
         self._session = requests.Session()
         self._session.trust_env = False
+        logging.info("[AI Config] provider=%s base_url=%s model=%s", self._provider, self._base_url, self._model)
 
     def interpret(
         self,
@@ -371,6 +376,9 @@ class AIInterpreter:
         return self._extract_content(response.json())
 
     def _post_chat(self, payload: Dict[str, Any], read_timeout: int) -> requests.Response:
+        request_payload = dict(payload)
+        if self._provider == "deepseek" and self._deepseek_thinking in {"enabled", "disabled"}:
+            request_payload.setdefault("thinking", {"type": self._deepseek_thinking})
         use_stream = bool(payload.get("stream"))
         return self._session.post(
             f"{self._base_url}/chat/completions",

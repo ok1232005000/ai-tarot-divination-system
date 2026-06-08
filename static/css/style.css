@@ -617,76 +617,34 @@ select {
     color: var(--muted);
 }
 
-.deck-picker {
-    min-height: 300px;
-    display: grid;
-    grid-template-columns: 54px minmax(180px, 240px) 54px;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 0 6px;
-}
-
 .picker-nav {
-    width: 54px;
-    min-height: 54px;
-    border-radius: 50%;
-    color: #fff;
-    font-size: 2rem;
-    background: linear-gradient(135deg, var(--purple-2), var(--violet));
-    box-shadow: 0 14px 34px rgba(109, 40, 217, 0.2);
-}
-
-.focus-card {
-    width: min(100%, 240px);
-    aspect-ratio: 2 / 3;
-    display: grid;
-    place-items: center;
-    align-content: center;
-    gap: 16px;
-    border: 1px solid rgba(139, 92, 246, 0.34);
+    width: 42px;
+    min-height: 38px;
     border-radius: 8px;
-    color: #fff7d6;
-    background:
-        radial-gradient(circle at 50% 36%, rgba(255, 255, 255, 0.4), transparent 28%),
-        linear-gradient(145deg, #9f7aea, #4c1d95);
-    box-shadow: 0 26px 70px rgba(76, 29, 149, 0.24), inset 0 0 28px rgba(255, 255, 255, 0.12);
-    cursor: pointer;
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-
-.focus-card:hover,
-.focus-card.selected {
-    transform: translateY(-4px);
-    box-shadow: 0 30px 78px rgba(76, 29, 149, 0.3), 0 0 32px rgba(183, 121, 31, 0.24);
-}
-
-.focus-card.selected .focus-card-mark {
     color: #fff;
-}
-
-.focus-card-mark {
-    font-size: 4rem;
-    line-height: 1;
-}
-
-.focus-card-index {
-    min-height: 30px;
-    padding: 4px 12px;
-    border-radius: 999px;
-    color: rgba(255, 255, 255, 0.9);
-    background: rgba(255, 255, 255, 0.13);
-    font-weight: 800;
+    font-size: 1.45rem;
+    background: linear-gradient(135deg, var(--purple-2), var(--violet));
+    box-shadow: 0 10px 24px rgba(109, 40, 217, 0.18);
 }
 
 .picker-actions,
-.selected-tray,
-.deck-dots {
+.selected-tray {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
     gap: 10px;
     margin-top: 12px;
+}
+
+.picker-actions {
+    align-items: center;
+}
+
+.hand-range {
+    min-width: 150px;
+    color: var(--muted);
+    font-size: 0.92rem;
+    text-align: center;
 }
 
 .primary-btn.small {
@@ -710,67 +668,53 @@ select {
     cursor: pointer;
 }
 
-.deck-dot {
-    width: 9px;
-    height: 9px;
-    border: 0;
-    border-radius: 50%;
-    background: rgba(139, 92, 246, 0.22);
-    cursor: pointer;
-}
-
-.deck-dot.active {
-    width: 26px;
-    border-radius: 999px;
-    background: var(--purple-2);
-}
-
-.deck-grid {
-    min-height: 96px;
-    overflow: hidden;
-    margin-top: 12px;
-}
-
-.deck-strip {
+.deck-hand {
+    min-height: 142px;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 8px;
+    gap: clamp(4px, 1.1vw, 10px);
+    margin-top: 16px;
+    padding: 20px 8px 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .deck-card {
     position: relative;
-    width: 44px;
+    width: clamp(42px, 6.1vw, 64px);
     aspect-ratio: 2 / 3;
     border: 1px solid rgba(139, 92, 246, 0.22);
-    border-radius: 6px;
-    background: linear-gradient(145deg, #b794f4, #6d28d9);
+    border-radius: 8px;
+    background:
+        radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.32), transparent 26%),
+        linear-gradient(145deg, #9f7aea, #4c1d95);
     color: #fff7d6;
     cursor: pointer;
-    opacity: 0.72;
-    transition: transform 0.16s ease, opacity 0.16s ease, border-color 0.16s ease;
+    box-shadow: 0 12px 26px rgba(76, 29, 149, 0.16);
+    transform: translateY(var(--fan-y));
+    transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
-.deck-card::before {
-    content: "☽";
-    font-size: 1rem;
+.deck-card span {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    font-weight: 900;
 }
 
-.deck-card:hover,
-.deck-card.is-focus {
-    transform: translateY(-5px) scale(1.08);
-    opacity: 1;
+.deck-card:hover {
+    transform: translateY(-8px);
     border-color: var(--gold);
+    box-shadow: 0 18px 36px rgba(76, 29, 149, 0.24);
 }
 
 .deck-card.selected {
     border-color: var(--gold);
-    background: linear-gradient(145deg, #f6d365, #8b5cf6);
+    color: #3f2768;
+    background: linear-gradient(145deg, #f6d365, #d8b4fe);
     animation: selectedPulse 0.72s ease both;
-}
-
-.deck-card.selected::before {
-    content: "✓";
 }
 
 .cards-container {
@@ -1359,18 +1303,18 @@ select {
         grid-template-columns: 1fr;
     }
 
-    .deck-picker {
-        grid-template-columns: 42px minmax(150px, 190px) 42px;
-        gap: 10px;
-        min-height: 260px;
-    }
-
     .picker-nav {
         width: 42px;
         min-height: 42px;
     }
 
-    .focus-card-mark {
-        font-size: 3.2rem;
+    .deck-hand {
+        justify-content: flex-start;
+        min-height: 118px;
+        padding-inline: 4px;
+    }
+
+    .deck-card {
+        flex: 0 0 42px;
     }
 }

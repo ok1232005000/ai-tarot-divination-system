@@ -1,7 +1,7 @@
 const STORAGE_KEY = "tarotHistory";
 const REVIEW_KEY = "tarotReviews";
 const JOURNAL_KEY = "tarotCompanionJournals";
-const AI_FRONTEND_TIMEOUT = 70000;
+const AI_FRONTEND_TIMEOUT = 130000;
 
 const state = {
     spread: "single_card",
@@ -17,7 +17,7 @@ const state = {
     intentCharged: false,
     dailyCard: null,
     deckInfo: [],
-    focusIndex: 0,
+    handStart: 0,
     relationshipCards: [],
     learnIndex: -1,
     latestJournal: null,
@@ -337,103 +337,78 @@ async function loadBlindDeck() {
 
 function renderBlindDeck() {
     const count = getCardCount();
-    state.focusIndex = 0;
+    state.handStart = 0;
     els.deckContainer.innerHTML = `
         <div class="deck-tools">
             <span id="selected-count">已选择 0 / ${count} 张</span>
             <button class="ghost-btn small" id="shuffle-btn">重新洗牌</button>
         </div>
-        <div class="deck-picker" id="deck-picker">
-            <button class="icon-btn picker-nav" id="prev-card" type="button" aria-label="上一张">‹</button>
-            <button class="focus-card" id="focus-card" type="button" aria-label="选择当前牌">
-                <span class="focus-card-mark">☽</span>
-                <span class="focus-card-index">第 1 张</span>
-            </button>
-            <button class="icon-btn picker-nav" id="next-card" type="button" aria-label="下一张">›</button>
-        </div>
         <div class="picker-actions">
-            <button class="ghost-btn small" id="random-card" type="button">随机换一张</button>
-            <button class="primary-btn small" id="pick-focus-card" type="button">选择这张</button>
+            <button class="icon-btn picker-nav" id="prev-page" type="button" aria-label="上一组">‹</button>
+            <span class="hand-range" id="hand-range"></span>
+            <button class="icon-btn picker-nav" id="next-page" type="button" aria-label="下一组">›</button>
+            <button class="ghost-btn small" id="random-card" type="button">随机选一张</button>
         </div>
+        <div class="deck-hand" id="deck-hand" aria-label="手动盲抽牌组"></div>
         <div class="selected-tray" id="selected-tray"></div>
-        <div class="deck-dots" id="deck-dots" aria-hidden="true"></div>
-        <div class="deck-grid" id="deck-grid">
-            <div class="deck-strip"></div>
-        </div>
     `;
     els.deckContainer.querySelector("#shuffle-btn").addEventListener("click", shuffleDeck);
-    els.deckContainer.querySelector("#prev-card").addEventListener("click", () => moveFocus(-1));
-    els.deckContainer.querySelector("#next-card").addEventListener("click", () => moveFocus(1));
-    els.deckContainer.querySelector("#random-card").addEventListener("click", randomFocusCard);
-    els.deckContainer.querySelector("#pick-focus-card").addEventListener("click", pickFocusedCard);
-    els.deckContainer.querySelector("#focus-card").addEventListener("click", pickFocusedCard);
-    els.deckContainer.querySelector("#deck-picker").addEventListener("keydown", (event) => {
-        if (event.key === "ArrowLeft" || event.key === "ArrowUp") moveFocus(-1);
-        if (event.key === "ArrowRight" || event.key === "ArrowDown") moveFocus(1);
-        if (event.key === "Enter" || event.key === " ") pickFocusedCard();
-    });
-    const strip = els.deckContainer.querySelector(".deck-strip");
-    state.blindDeck.forEach((card) => {
+    els.deckContainer.querySelector("#prev-page").addEventListener("click", () => moveHand(-1));
+    els.deckContainer.querySelector("#next-page").addEventListener("click", () => moveHand(1));
+    els.deckContainer.querySelector("#random-card").addEventListener("click", pickRandomCard);
+    updateHand();
+}
+
+function getHandSize() {
+    return window.matchMedia("(max-width: 680px)").matches ? 7 : 13;
+}
+
+function moveHand(direction) {
+    const handSize = getHandSize();
+    const maxStart = Math.max(0, state.blindDeck.length - handSize);
+    state.handStart = Math.min(maxStart, Math.max(0, state.handStart + direction * handSize));
+    updateHand();
+}
+
+function pickRandomCard() {
+    if (!state.blindDeck.length) return;
+    const available = state.blindDeck.filter((card) => !state.selectedBlindIds.includes(card.blind_id));
+    if (!available.length) {
+        showToast("已经选满这组牌了");
+        return;
+    }
+    const card = available[Math.floor(Math.random() * available.length)];
+    state.handStart = Math.max(0, Math.min(card.position - 1, state.blindDeck.length - getHandSize()));
+    toggleBlindSelection(card.blind_id);
+}
+
+function updateHand() {
+    const hand = els.deckContainer.querySelector("#deck-hand");
+    const range = els.deckContainer.querySelector("#hand-range");
+    const tray = els.deckContainer.querySelector("#selected-tray");
+    if (!hand || !range || !tray) return;
+
+    const handSize = getHandSize();
+    const end = Math.min(state.handStart + handSize, state.blindDeck.length);
+    const visibleCards = state.blindDeck.slice(state.handStart, end);
+    range.textContent = `第 ${state.handStart + 1}-${end} 张 / 共 ${state.blindDeck.length} 张`;
+    hand.innerHTML = "";
+
+    visibleCards.forEach((card, index) => {
+        const selectedIndex = state.selectedBlindIds.indexOf(card.blind_id);
         const cardEl = document.createElement("button");
         cardEl.className = "deck-card";
         cardEl.type = "button";
         cardEl.dataset.blindId = card.blind_id;
-        cardEl.dataset.deckIndex = String(card.position - 1);
-        cardEl.title = `选择第 ${card.position} 张`;
-        cardEl.addEventListener("click", () => {
-            state.focusIndex = card.position - 1;
-            updatePicker();
-        });
-        strip.appendChild(cardEl);
-    });
-    updatePicker();
-}
-
-function wrapIndex(index, length) {
-    return ((index % length) + length) % length;
-}
-
-function moveFocus(direction) {
-    state.focusIndex = wrapIndex(state.focusIndex + direction, state.blindDeck.length);
-    updatePicker();
-}
-
-function randomFocusCard() {
-    if (!state.blindDeck.length) return;
-    let nextIndex = Math.floor(Math.random() * state.blindDeck.length);
-    if (state.blindDeck.length > 1 && nextIndex === state.focusIndex) {
-        nextIndex = wrapIndex(nextIndex + 1, state.blindDeck.length);
-    }
-    state.focusIndex = nextIndex;
-    updatePicker();
-}
-
-function pickFocusedCard() {
-    const focused = state.blindDeck[state.focusIndex];
-    if (!focused) return;
-    const element = els.deckContainer.querySelector(`.deck-card[data-blind-id="${focused.blind_id}"]`);
-    toggleBlindSelection(focused.blind_id, element);
-}
-
-function updatePicker() {
-    const focused = state.blindDeck[state.focusIndex];
-    if (!focused) return;
-    const focusCard = els.deckContainer.querySelector("#focus-card");
-    const focusIndex = els.deckContainer.querySelector(".focus-card-index");
-    const tray = els.deckContainer.querySelector("#selected-tray");
-    const dots = els.deckContainer.querySelector("#deck-dots");
-    const cards = [...els.deckContainer.querySelectorAll(".deck-card")];
-    const focusSelected = state.selectedBlindIds.includes(focused.blind_id);
-
-    focusIndex.textContent = `第 ${focused.position} 张`;
-    focusCard.classList.toggle("selected", focusSelected);
-
-    cards.forEach((cardEl) => {
-        const deckIndex = Number(cardEl.dataset.deckIndex);
-        const offset = Math.abs(deckIndex - state.focusIndex);
-        cardEl.classList.toggle("is-focus", deckIndex === state.focusIndex);
-        cardEl.classList.toggle("selected", state.selectedBlindIds.includes(Number(cardEl.dataset.blindId)));
-        cardEl.hidden = offset > 5;
+        cardEl.style.setProperty("--fan-offset", String(index - (visibleCards.length - 1) / 2));
+        cardEl.style.setProperty("--fan-y", `${Math.abs(index - (visibleCards.length - 1) / 2)}px`);
+        cardEl.title = selectedIndex >= 0 ? `已选为第 ${selectedIndex + 1} 张` : `选择第 ${card.position} 张`;
+        cardEl.classList.toggle("selected", selectedIndex >= 0);
+        cardEl.innerHTML = selectedIndex >= 0
+            ? `<span>${selectedIndex + 1}</span>`
+            : `<span>☽</span>`;
+        cardEl.addEventListener("click", () => toggleBlindSelection(card.blind_id, cardEl));
+        hand.appendChild(cardEl);
     });
 
     tray.innerHTML = state.selectedBlindIds.length
@@ -448,20 +423,6 @@ function updatePicker() {
             const blindId = Number(button.dataset.removeBlindId);
             const cardEl = els.deckContainer.querySelector(`.deck-card[data-blind-id="${blindId}"]`);
             toggleBlindSelection(blindId, cardEl);
-        });
-    });
-
-    const dotCount = 9;
-    const half = Math.floor(dotCount / 2);
-    dots.innerHTML = Array.from({ length: dotCount }, (_, index) => {
-        const cardIndex = wrapIndex(state.focusIndex + index - half, state.blindDeck.length);
-        const active = index === half ? "active" : "";
-        return `<button class="deck-dot ${active}" type="button" data-dot-index="${cardIndex}"></button>`;
-    }).join("");
-    dots.querySelectorAll("[data-dot-index]").forEach((button) => {
-        button.addEventListener("click", () => {
-            state.focusIndex = Number(button.dataset.dotIndex);
-            updatePicker();
         });
     });
 }
@@ -492,7 +453,7 @@ function toggleBlindSelection(blindId, element) {
     }
     const selectedCount = document.getElementById("selected-count");
     if (selectedCount) selectedCount.textContent = `已选择 ${state.selectedBlindIds.length} / ${count} 张`;
-    updatePicker();
+    updateHand();
     updateDrawButton();
 }
 

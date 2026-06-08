@@ -123,11 +123,12 @@ async function init() {
     hydrateHistory();
     hydrateProfile();
     hydrateJournals();
-    await Promise.all([loadSpreads(), loadDailyCard(), loadDeckInfo()]);
+    await Promise.all([loadSpreads(), loadDeckInfo()]);
     updateQuestionCount();
     updateSpreadDetail();
     updateDrawButton();
     renderLearnCard();
+    loadDailyCard();
 }
 
 function bindEvents() {
@@ -361,6 +362,10 @@ function renderBlindDeck() {
 
 function getHandSize() {
     return window.matchMedia("(max-width: 680px)").matches ? 7 : 13;
+}
+
+function wrapIndex(index, length) {
+    return ((index % length) + length) % length;
 }
 
 function moveHand(direction) {
